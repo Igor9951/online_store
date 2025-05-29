@@ -27,7 +27,7 @@ export default function Account({ userAuth }) {
 
 
   async function handleLogout() {
-  await fetch('/api/logout', { method: 'POST' });
+  await fetch('/api/logout');
   window.location.href = '/';
 }
 
