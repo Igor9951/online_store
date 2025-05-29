@@ -1,33 +1,25 @@
 'use server'
 
-import { prisma } from '../lib/prisma';
-import { writeFile, unlink } from 'fs/promises'
-import path from 'path'
-import { randomUUID } from 'crypto'
+import { prisma } from '../lib/prisma'
+import {  cloudinary } from 'next-cloudinary'
 
-// Створення
+async function deleteFromCloudinary(publicId) {
+  try {
+    await cloudinary.uploader.destroy(publicId)
+  } catch (err) {
+    console.error('❌ Cloudinary delete error:', err)
+  }
+}
+
 export async function createCategoryWithImage(formData) {
   const name = formData.get('name')?.toString().trim()
-  const file = formData.get('image')
+  const publicId = formData.get('image')?.toString() || null
 
   if (!name) return { success: false, message: 'Назва обовʼязкова' }
 
-  let imagePath= null
-
-  if (file && file.size > 0) {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const filename = `${randomUUID()}-${file.name}`
-    const filepath = path.join(process.cwd(), 'public/uploads/category', filename)
-    await writeFile(filepath, buffer)
-    imagePath = `/uploads/category/${filename}`
-  }
-
   try {
     await prisma.category.create({
-      data: {
-        name,
-        image: imagePath,
-      },
+      data: { name, image: publicId },
     })
     return { success: true, message: '✅ Категорія створена' }
   } catch (err) {
@@ -35,94 +27,44 @@ export async function createCategoryWithImage(formData) {
   }
 }
 
-// Видалення
-export async function deleteCategoryWithImage(id) {
-  const db=new PrismaClient()
- const category = await prisma.category.findUnique({
-    where: { id: id},
-    include: {
-      product: {
-        include: { productImage: true },
-      },
-    },
-  })
-
-  if (!category) return
-
-  // 1. Видалити всі фото продуктів
-  for (const product of category.product) {
-    for (const image of product.productImage) {
-      const filePath = path.join(process.cwd(), 'public/uploads', image.url)
-      await unlink(filePath).catch(() => {}) // ігнорувати, якщо файл не існує
-    }
-
-    // 2. Видалити записи з таблиці productImage
-    await prisma.productImage.deleteMany({
-      where: { productId: product.id },
-    })
-  }
-
-  // 3. Видалити самі продукти
-  await prisma.product.deleteMany({
-    where: { categoryId:id },
-  })
-
-  // 4. Видалити зображення самої категорії (якщо є)
-  if (category.image) {
-    const catImagePath = path.join(process.cwd(), 'public', category.image)
-    await unlink(catImagePath).catch(() => {})
-  }
-
-  // 5. Видалити категорію
-  await prisma.category.delete({
-    where: { id: id },
-  })
-}
-
-// Отримання
 export async function getAllCategories() {
-  const db=new PrismaClient()
-  return db.category.findMany({ orderBy: { id: 'desc' } })
+  return await prisma.category.findMany({ orderBy: { id: 'desc' } })
 }
 
 export async function updateCategory(formData) {
-  const db=new PrismaClient()
-  const id = parseInt(formData.get('id'),10)
+  const id = parseInt(formData.get('id'))
   const name = formData.get('name')?.toString().trim()
-  const file = formData.get('image')
-
-  console.log(id)
+  const newPublicId = formData.get('image')?.toString() || null
 
   if (!id || !name) return { success: false, message: 'Неправильні дані' }
 
-  const category = await db.category.findUnique({ where: { id } })
+  const category = await prisma.category.findUnique({ where: { id } })
   if (!category) return { success: false, message: 'Категорію не знайдено' }
 
-  let imagePath = category.image
-
-  if (file && file.size > 0) {
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const fileName = `${Date.now()}-${file.name}`
-    const savePath = path.join(process.cwd(), 'public/uploads/category', fileName)
-    await writeFile(savePath, buffer)
-
-    // видалити старе фото
-    if (category.image) {
-      const oldPath = path.join(process.cwd(), 'public/uploads/category', category.image)
-      await unlink(oldPath).catch(() => {})
-    }
-
-    imagePath = `uploads/category/${fileName}`
+  // Видаляємо старе фото, якщо є нове
+  if (newPublicId && category.image && newPublicId !== category.image) {
+    await deleteFromCloudinary(category.image)
   }
 
-  await db.category.update({
+  await prisma.category.update({
     where: { id },
     data: {
       name,
-      image: imagePath,
+      image: newPublicId || category.image,
     },
   })
 
-  return { success: true }
+  return { success: true, message: '✅ Оновлено' }
+}
+
+// Видалення категорії з фото
+export async function deleteCategoryWithImage(id) {
+  const category = await prisma.category.findUnique({ where: { id } })
+  if (!category) return
+
+  if (category.image) {
+    await deleteFromCloudinary(category.image)
+  }
+
+  await prisma.category.delete({ where: { id } })
 }

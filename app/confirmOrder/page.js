@@ -3,7 +3,8 @@
 import DeliveryForm from '../components/DeliveryForm'
 import CheckoutButton from '../components/PlaceOrderButton'
 import { useCart } from '../components/CartContex'
-import { useEffect, useState } from 'react'
+import { useEffect, useState,useCallback } from 'react'
+
 
 export default function CheckoutPage() {
   const { cartItems, totalSum } = useCart()
@@ -42,9 +43,9 @@ export default function CheckoutPage() {
     fetchUser()
   }, [])
 
-  const handleDeliveryChange = (data) => {
+ const handleDeliveryChange = useCallback((data) => {
     setDeliveryData(data)
-  }
+  }, [])
 
   const handleContactChange = (e) => {
     const { name, value } = e.target

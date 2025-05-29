@@ -11,6 +11,7 @@ export default function Footer({ userAuth }) {
           <ul className="space-y-1 text-sm">
             <li><Link href="/" className="hover:underline">Головна</Link></li>
             <li><Link href="/about" className="hover:underline">Про нас</Link></li>
+            <li><Link href="/contact" className="hover:underline">Контакти</Link></li>
             {userAuth?.role === "admin" && (
               <>
                 <li><Link href="/adminPage" className="hover:underline">Адмінка</Link></li>

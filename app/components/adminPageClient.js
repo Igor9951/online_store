@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import addProduct from '../components/addProduct';
 import { redirect } from 'next/navigation';
 import { auth } from '../components/auth';
-import Image from 'next/image';
+import { CldUploadButton, CldImage } from 'next-cloudinary';
 
 export default function AdminPageClient({ categories }) {
   const [name, setName] = useState('');
@@ -14,77 +14,70 @@ export default function AdminPageClient({ categories }) {
   const [categoryId, setCategoryId] = useState('');
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [files, setFiles] = useState([]);
-
-const handleFileChange = (e) => {
-  const selected = Array.from(e.target.files || []);
-  if (selected.length + files.length > 10) return; // max 10
-  setFiles(prev => [...prev, ...selected]);
-};
-
-const removeFile = (index) => {
-  setFiles(files.filter((_, i) => i !== index));
-};
-const uploadFiles = async ()=> {
-  const urls = [];
-
-  for (const file of files) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) throw new Error('Помилка при завантаженні зображень');
-
-    const data = await res.json();
-    urls.push(data.url); // `/uploads/filename.jpg`
-  }
-
-  return urls;
-};
-
+  const [uploadedUrls, setUploadedUrls] = useState([]);
 
   useEffect(() => {
     async function authAdmin() {
       const checkAuth = await auth(true);
-      if (!checkAuth) {
-        redirect('/');
-      }
+      if (!checkAuth) redirect('/');
     }
     authAdmin();
   }, []);
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  try {
-    const imageUrls = await uploadFiles(); // <== нове
+  const handleFileChange = async (e) => {
+    const selected = Array.from(e.target.files || []);
+    if (selected.length + uploadedUrls.length > 10) return;
 
-    const result = await addProduct({
-      name,
-      description,
-      price: parseFloat(price),
-      stock: parseInt(stock),
-      categoryId: parseInt(categoryId),
-      imageUrls, // передаємо масив URL
-    });
+    for (const file of selected) {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    if (result.success) {
-      setSuccess(true);
-      setName('');
-      setDescription('');
-      setPrice('');
-      setStock('');
-      setCategoryId('');
-      setFiles([]);
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error('Помилка при завантаженні зображення');
+
+        const data = await res.json();
+        setUploadedUrls((prev) => [...prev, data.url]); // Cloudinary public_id
+      } catch (err) {
+        setError('❌ Помилка при завантаженні зображення');
+      }
     }
-  } catch (err) {
-    setError(err.message || 'Сталася помилка');
-  }
-};
+  };
+
+  const removeImage = (index) => {
+    setUploadedUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const result = await addProduct({
+        name,
+        description,
+        price: parseFloat(price),
+        stock: parseInt(stock),
+        categoryId: parseInt(categoryId),
+        imageUrls: uploadedUrls,
+      });
+
+      if (result.success) {
+        setSuccess(true);
+        setName('');
+        setDescription('');
+        setPrice('');
+        setStock('');
+        setCategoryId('');
+        setUploadedUrls([]);
+      }
+    } catch (err) {
+      setError(err.message || 'Сталася помилка');
+    }
+  };
 
   return (
     <div className="max-w-lg mx-auto mt-10">
@@ -121,7 +114,6 @@ const uploadFiles = async ()=> {
           required
           className="border p-2 rounded"
         />
-
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
@@ -136,48 +128,56 @@ const uploadFiles = async ()=> {
           ))}
         </select>
 
-        <div className="flex flex-col gap-2">
+       <div className="flex flex-col gap-2">
   <label className="font-semibold">Фото товару (до 10)</label>
 
-  <label className="inline-block w-fit cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200">
-  + Додати фото
-  <input
-    type="file"
-    accept="image/*"
-    multiple
-    onChange={handleFileChange}
-    disabled={files.length >= 10}
-    className="hidden"
-  />
-</label>
+  <CldUploadButton
+    uploadPreset="Product_photo" 
+    options={{ maxFiles: 10 }}
+    onSuccess={(result) => {
+      if (result?.info?.public_id) {
+        setUploadedUrls((prev) => [...prev, result.info.public_id]);
+      }
+    }}
+    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+  >
+    + Завантажити фото
+  </CldUploadButton>
 
-  <div className="grid grid-cols-3 gap-2 mt-2">
-    {files.map((file, i) => (
-      <div key={i} className="relative">
-        <Image
-          src={URL.createObjectURL(file)}
-          alt={`Фото ${i + 1}`}
-          className="w-full h-24 object-cover rounded"
-        />
-        <button
-          type="button"
-          onClick={() => removeFile(i)}
-          className="absolute top-0 right-0 text-white bg-black/50 p-1 rounded"
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-  </div>
+  {uploadedUrls.length > 0 && (
+    <div className="grid grid-cols-3 gap-2 mt-4">
+      {uploadedUrls.map((publicId, i) => (
+        <div key={i} className="relative">
+          <CldImage
+            width="300"
+            height="300"
+            src={publicId}
+            alt={`Фото товару ${i + 1}`}
+            className="rounded object-cover"
+          />
+          <button
+            type="button"
+            onClick={() =>
+              setUploadedUrls((prev) => prev.filter((_, idx) => idx !== i))
+            }
+            className="absolute top-0 right-0 text-white bg-black/50 p-1 rounded"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
 </div>
 
-<button
+        <button
           type="submit"
           className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
         >
           Додати
         </button>
       </form>
+
       {success && <p className="text-green-600 mt-2">✅ Товар додано!</p>}
       {error && <p className="text-red-600 mt-2">{error}</p>}
     </div>

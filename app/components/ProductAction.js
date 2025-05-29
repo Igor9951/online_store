@@ -1,64 +1,65 @@
 'use server'
 
-import { prisma } from '../lib/prisma';
-import fs from 'fs/promises'
-import path from 'path'
+import { prisma } from '../lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { writeFile } from 'fs/promises'
 import { redirect } from 'next/navigation'
-
+import cloudinary from '../lib/cloudinary'
 
 export async function updateProductField(id, field, value) {
-  const data = { [field]: field === 'price' || field === 'stock' ? parseInt(value,10) : parseInt(value,10)}
-  const _id=parseInt(id,10)
-  await prisma.product.update({ where: { id:_id }, data })
+  const data = {
+    [field]: ['price', 'stock'].includes(field)
+      ? parseInt(value, 10)
+      : value.toString(),
+  }
+
+  const _id = parseInt(id, 10)
+  await prisma.product.update({ where: { id: _id }, data })
   revalidatePath('/')
 }
 
 export async function deleteProduct(id) {
-  const images = await prisma.productImage.findMany({ where: { productId: id } })
+  const images = await prisma.productimage.findMany({ where: { productId: id } })
+
   for (const img of images) {
-    await fs.unlink(path.join(process.cwd(), 'public', 'uploads', img.url)).catch(() => {})
+    await cloudinary.uploader.destroy(img.url).catch(() => {})
   }
 
-  await prisma.productImage.deleteMany({ where: { productId: id } })
+  await prisma.productimage.deleteMany({ where: { productId: id } })
   await prisma.product.delete({ where: { id } })
+
   redirect('/')
 }
 
-
 export async function addProductImage(formData) {
-  const file = formData.get('image')
+  const publicId = formData.get('image')  
   const productId = Number(formData.get('productId'))
 
-  if (!file || !file.name || !productId) {
+  if (!publicId || !productId) {
     throw new Error('Неправильні дані')
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const fileName = `${Date.now()}_${file.name}`
-  const filePath = path.join(process.cwd(), 'public/uploads', fileName)
-
-  await writeFile(filePath, buffer)
-
-  await prisma.productImage.create({
+  await prisma.productimage.create({
     data: {
-      url: fileName,
+      url: publicId,  
       product: { connect: { id: productId } },
     },
   })
-
-  revalidatePath(`/product/${formData.get('productId')}`)
 }
 
 export async function deleteProductImage(formData) {
-  const imageId = parseInt(formData.get('imageId'),10)
+  const imageId = parseInt(formData.get('imageId'), 10)
+  const productId = parseInt(formData.get('productId'), 10)
 
-  if (!imageId) throw new Error('Image ID не вказано')
+  if (!imageId || !productId) throw new Error('Невірні дані')
 
-  await db.productImage.delete({
+  const image = await prisma.productimage.findUnique({
     where: { id: imageId },
   })
 
-  revalidatePath(`/product/${formData.get('productId')}`)
+  if (image?.url) {
+    await cloudinary.uploader.destroy(image.url).catch(() => {})
+  }
+
+  await prisma.productimage.delete({ where: { id: imageId } })
+  revalidatePath(`/product/${productId}`)
 }

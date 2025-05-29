@@ -1,23 +1,39 @@
-import {  NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { cloudinary } from 'cloudinary';
 
-export async function POST(req) {
-  const formData = await req.formData();
+
+export const runtime = 'nodejs'; 
+
+
+export async function POST(request) {
+  const formData = await request.formData();
   const file = formData.get('file');
 
   if (!file) {
-    return NextResponse.json({ error: 'Файл не знайдено' }, { status: 400 });
+    return new Response(JSON.stringify({ error: 'No file provided' }), {
+      status: 400,
+    });
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
 
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = path.join(process.cwd(), 'public/uploads', fileName);
+  try {
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: 'products' }, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        })
+        .end(buffer);
+    });
 
-  await writeFile(filePath, buffer);
-
-  const url = `${fileName}`;
-  return NextResponse.json({ url });
+    return new Response(JSON.stringify({ url: result.public_id }), {
+      status: 200,
+    });
+  } catch (error) {
+    console.error('Cloudinary error:', error);
+    return new Response(JSON.stringify({ error: 'Upload failed' }), {
+      status: 500,
+    });
+  }
 }

@@ -9,11 +9,11 @@ export default async function addProduct(data) {
       data: {
         name: data.name,
         description: data.description,
-        price: data.price,
-        stock: data.stock,
-        categoryId: data.categoryId,
+        price: parseInt(data.price,10),
+        stock: parseInt(data.stock,10),
+        categoryId: parseInt(data.categoryId,10),
         productImage: {
-          create: data.imageUrls.map((url) => ({ url })),
+          create: data.imageUrls.map((publicId) => ({ url: publicId })),
         },
       },
       include: {
@@ -21,7 +21,7 @@ export default async function addProduct(data) {
       },
     });
 
-    revalidatePath('/'); // оновлення кешу (якщо треба)
+    revalidatePath('/'); 
     return { success: true, product };
   } catch (error) {
     console.error('❌ Помилка при додаванні продукту:', error);

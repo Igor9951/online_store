@@ -7,10 +7,15 @@ import { getCategories } from "./components/getCategories";
 import ProductSortSelector from "./components/Sort";
 import { getProductsBySort } from "./components/getProductsBySort";
 import Footer from "./components/Footer";
+import { headers } from 'next/headers'
 
-export default async function Home({searchParams}) {
+export default async function Home() {
 
-  const sort = await searchParams?.sort || 'newest'
+   const headersList = await headers() 
+  const referer = headersList.get('referer')
+  const fullUrl = referer || 'http://localhost:3000'
+  const url = new URL(fullUrl)
+  const sort = url.searchParams.get('sort') || 'newest'
   const userAuth = await auth();
    const products = await getProductsBySort(sort);
    const categories=await getCategories()

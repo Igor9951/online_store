@@ -1,7 +1,7 @@
 'use client'
 
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { CldImage } from 'next-cloudinary'
 
 export default function CategorySelector({ categories }) {
   const router = useRouter()
@@ -20,14 +20,18 @@ export default function CategorySelector({ categories }) {
             className="border-2 rounded-2xl p-4 cursor-pointer hover:shadow-lg transition"
             onClick={() => handleClick(cat.id)}
           >
-        
             <div className="flex flex-col items-center gap-2">
-              <Image
-                src={cat.image ? `/${cat.image}` : null }
-                width={40}
-                height={40}
-                alt={cat.name}
-              />
+              {cat.image ? (
+                <CldImage
+                  src={cat.image}
+                  width={60}
+                  height={60}
+                  alt={cat.name}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-[60px] h-[60px] bg-gray-200 rounded-full" />
+              )}
               <p className="font-semibold text-gray-700">{cat.name}</p>
             </div>
           </div>
