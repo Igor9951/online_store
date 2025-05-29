@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { CldImage } from 'next-cloudinary'
 import Image from 'next/image'
-
 export default function ProductSearch() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -52,12 +52,14 @@ export default function ProductSearch() {
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
                 onClick={() => router.push(`/product/${product.id}`)}
               >
-                <Image
-                  src={`/uploads/${product.productImage?.[0]?.url || 'no-image.png'}`}
+                <CldImage
+                  src={product.productImage?.[0]?.url || 'no-image.png'}
                   alt={product.name}
                   width={40}
                   height={40}
                   className="rounded object-cover"
+                  crop="fill"
+                  gravity="auto"
                 />
                 <span className="text-sm">{product.name}</span>
               </div>
