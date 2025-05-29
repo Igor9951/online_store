@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '../lib/prisma'
-import {  cloudinary } from 'next-cloudinary'
+import cloudinary from '../lib/cloudinary'
 
 async function deleteFromCloudinary(publicId) {
   try {
