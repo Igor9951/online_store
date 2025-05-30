@@ -8,12 +8,15 @@ import {
   getAllCategories,
 } from './categoryActions'
 import CategoryEditForm from './CategoryEditForm'
+import { useRouter } from 'next/navigation';
 
 export default function CategoryManager() {
   const [categories, setCategories] = useState([])
   const [isPending, startTransition] = useTransition()
   const [imageData, setImageData] = useState(null)
   const [message, setMessage] = useState(null)
+
+  const router = useRouter();
 
   useEffect(() => {
     refreshCategories()
@@ -23,14 +26,6 @@ export default function CategoryManager() {
     getAllCategories().then(setCategories)
   }
 
-  const handleDelete = (id) => {
-    if (confirm('Видалити категорію?')) {
-      startTransition(async () => {
-        await deleteCategoryWithImage(id)
-        refreshCategories()
-      })
-    }
-  }
 
   return (
     <div className="max-w-2xl mx-auto mt-10 space-y-6">
@@ -44,7 +39,9 @@ export default function CategoryManager() {
           setImageData(null)
           refreshCategories()
           setMessage(res.message)
-          return res
+          if(res?.success){
+            router.refresh()
+          }
         }}
         className="space-y-3 border p-4 rounded bg-gray-50"
       >
