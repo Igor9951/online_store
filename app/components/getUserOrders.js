@@ -8,7 +8,7 @@ export async function getUserOrders() {
 
   if (!session?.id) throw new Error('Користувач не авторизований')
 
-  const orders = await prisma.order.findMany({
+  const orders = await prisma.orders.findMany({
     where: { userId: session.id },
     orderBy: { createdAt: 'desc' },
     include: {

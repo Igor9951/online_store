@@ -10,7 +10,7 @@ export async function updateOrderStatus(orderId, status) {
     throw new Error('Доступ заборонено')
   }
 
-  await prisma.order.update({
+  await prisma.orders.update({
     where: { id: orderId },
     data: { status }
   })

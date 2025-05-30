@@ -10,7 +10,7 @@ export async function getAllOrders() {
     throw new Error('Доступ заборонено')
   }
 
-  const orders = await prisma.order.findMany({
+  const orders = await prisma.orders.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       user: true,
