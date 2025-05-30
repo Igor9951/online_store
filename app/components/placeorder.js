@@ -47,7 +47,7 @@ export async function placeOrder({
     orderData.email = contactData.email
   }
 
-  const order = await prisma.order.create({
+  const order = await prisma.orders.create({
     data: orderData,
   })
 
