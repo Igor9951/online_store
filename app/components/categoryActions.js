@@ -21,6 +21,7 @@ export async function createCategoryWithImage(formData) {
     await prisma.category.create({
       data: { name, image: publicId },
     })
+    window.location.reload();
     return { success: true, message: '✅ Категорія створена' }
   } catch (err) {
     return { success: false, message: '🚫 Помилка: ' + err.message }
