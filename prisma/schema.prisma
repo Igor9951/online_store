@@ -17,7 +17,7 @@ model delivery {
   warehouseRef String?
   createdAt    DateTime @default(now())
   userId       Int?
-  order        order    @relation(fields: [orderId], references: [id], map: "Delivery_orderId_fkey")
+  order        orders    @relation(fields: [orderId], references: [id], map: "Delivery_orderId_fkey")
   user         user?    @relation(fields: [userId], references: [id])
 
   @@index([orderId], map: "Delivery_orderId_fkey")
@@ -31,7 +31,7 @@ model category {
   product product[]
 }
 
-model order {
+model orders {
   id         Int         @id @default(autoincrement())
   userId     Int?
   status     String      @default("pending")
@@ -54,7 +54,7 @@ model orderitem {
   productId Int
   quantity  Int     @default(1)
   price     Float
-  order     order   @relation(fields: [orderId], references: [id], map: "OrderItem_orderId_fkey")
+  order     orders   @relation(fields: [orderId], references: [id], map: "OrderItem_orderId_fkey")
   product   product @relation(fields: [productId], references: [id], map: "OrderItem_productId_fkey")
 
   @@index([orderId], map: "OrderItem_orderId_fkey")
@@ -104,7 +104,7 @@ model user {
   phone            String?
   lastName         String
   delivery         delivery[]
-  order            order[]
+  order            orders[]
   review           review[]
   session          session[]
 }
