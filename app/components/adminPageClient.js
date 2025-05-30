@@ -121,8 +121,8 @@ export default function AdminPageClient({ categories }) {
           className="border p-2 rounded"
         >
           <option value="">Оберіть категорію</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
+          {categories.map((cat,indx) => (
+            <option key={indx} value={cat.id}>
               {cat.name}
             </option>
           ))}
