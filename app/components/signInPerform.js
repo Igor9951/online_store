@@ -3,6 +3,7 @@
 import { prisma } from '../lib/prisma';
 import { sendMail } from "./sendEmail";
 import bcrypt from 'bcrypt';
+import { cookies } from "next/headers";
 
 async function generateCode(length = 6) {
   let code = '';
@@ -13,18 +14,11 @@ async function generateCode(length = 6) {
 }
 
 export async function createUser(name, lastName, email, phone, password) {
-
-  const check = await prisma.user.findUnique({
-    where: { email }
-  });
-
-  // 1 – користувача створено, але не підтверджено email
-  // 2 – користувача вже зареєстровано і email підтверджено
-  // 3 – користувач уже існує, і йому не потрібно підтверджувати email
+  const check = await prisma.user.findUnique({ where: { email } });
 
   if (check && check.verificationCode) {
     const hashedPassword = await bcrypt.hash(password, 12);
-    await db.user.update({
+    await prisma.user.update({
       where: { email },
       data: {
         name,
@@ -58,6 +52,14 @@ export async function createUser(name, lastName, email, phone, password) {
   });
 
   await sendMail(user.email, code);
+
+  
+  const cookieStore = cookies();
+  cookieStore.set("verify_email", user.email, {
+    httpOnly: true,
+    path: "/",
+    maxAge: 60 * 10,
+  });
 
   return { status: 1 };
 }

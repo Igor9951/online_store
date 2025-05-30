@@ -1,9 +1,11 @@
 'use server'
 
 import { prisma } from '../lib/prisma';
+import { cookies } from "next/headers";
 
 export async function checkCode(code,email){
 
+  const cookieStore =await cookies();
 const validated_email=email.toString().replace('%40','@')
 
 try{
@@ -31,6 +33,13 @@ data:{
   codeExpires:null
 }
 })
+
+cookieStore.set("verify_email", "", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 0, 
+    });
+
 return {success:true,codeExpires:true}
 
 }

@@ -5,7 +5,6 @@ import { checkCode } from "@/app/components/checkCode";
 import { redirect, useParams } from "next/navigation";
 import { resend } from "@/app/components/resend";
 
-
 export default function Verification(){
   
 
