@@ -3,9 +3,7 @@ import Link from 'next/link';
 export default function Footer({ userAuth }) {
   return (
     <footer className="w-full bg-orange-900 text-white py-8 mt-10">
-      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-        {/* Навігація */}
+      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <div>
           <h3 className="text-lg font-semibold mb-2">Навігація</h3>
           <ul className="space-y-1 text-sm">
@@ -24,7 +22,6 @@ export default function Footer({ userAuth }) {
           </ul>
         </div>
 
-        {/* Контакти продавця */}
         <div>
           <h3 className="text-lg font-semibold mb-2">Контакти продавця</h3>
           <p className="text-sm">Email: <a href="mailto:acenkoigor44@gmail.com" className="underline">acenkoigor44@gmail.com</a></p>
@@ -32,7 +29,6 @@ export default function Footer({ userAuth }) {
           <p className="text-sm mt-2">Графік: Пн–Пт, 09:00–18:00</p>
         </div>
 
-        {/* Додаткова інформація */}
         <div>
           <h3 className="text-lg font-semibold mb-2">Інформація</h3>
           <ul className="space-y-1 text-sm">

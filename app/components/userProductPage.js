@@ -42,18 +42,15 @@ export default function UserProductPage({ product }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         <div className="flex flex-col gap-6">
-          <div
-            className="relative w-full h-[500px] rounded-xl overflow-hidden shadow-lg border cursor-pointer"
-            onClick={() => product.productImage?.[0] && openImage(product.productImage[0].url)}
-          >
+          <div className="relative w-full h-[500px] rounded-xl overflow-hidden shadow-lg border cursor-pointer"
+            onClick={() => product.productImage?.[0] && openImage(product.productImage[0].url)}>
             <CldImage
               src={product.productImage?.[0]?.url || 'no-image.png'}
               alt={product.name}
               fill
               style={{ objectFit: 'cover' }}
               className="transition-transform duration-300 hover:scale-105"
-              priority
-            />
+              priority />
           </div>
 
 
