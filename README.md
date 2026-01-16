@@ -44,3 +44,36 @@ The project integrates the Nova Poshta API to:
 ```bash
 git clone https://github.com/your-username/online_store.git
 cd online_store
+
+# Screenshots
+
+Нижче наведені скріншоти інтерфейсу та функціоналу проекту:
+
+### Головна сторінка
+![Main Page as Guest](screenshots/mainPageAsGuest.png)
+![Main Page as User](screenshots/mainPageAsUser.png)
+
+### Продукти
+![Add Product](screenshots/addProduct.png)
+![Edit Product for Admin](screenshots/editProductForAdmin.png)
+![Product Page](screenshots/productPage.png)
+
+### Кошик та замовлення
+![Busket](screenshots/busket.png)
+![Make Order](screenshots/makeOrder.png)
+
+### Фільтри та пошук
+![Filter](screenshots/filter.png)
+
+### Реєстрація та логін
+![Registration Form](screenshots/registrationForm.png)
+![Code Sent to Email](screenshots/codeSentToEmail.png)
+
+### Інтеграції
+![Nova Poshta API](screenshots/novaPoshtaApi.png)
+
+### База даних
+![Database](screenshots/database.png)
+
+### Діаграми та кейси
+![Use Case](screenshots/useCAse.png)
