@@ -38,13 +38,6 @@ The project integrates the Nova Poshta API to:
 - Fetch available warehouses by selected city
 - Provide dynamic delivery location selection during checkout
 
-## Getting Started
-
-### 1. Clone repository
-```bash
-git clone https://github.com/your-username/online_store.git
-cd online_store
-
 # Screenshots
 
 Нижче наведені скріншоти інтерфейсу та функціоналу проекту:
@@ -77,3 +70,12 @@ cd online_store
 
 ### Діаграми та кейси
 ![Use Case](screenshots/useCAse.png)
+
+
+## Getting Started
+
+### 1. Clone repository
+```bash
+git clone https://github.com/your-username/online_store.git
+cd online_store
+
